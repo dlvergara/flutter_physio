@@ -1,11 +1,16 @@
-
-import 'package:dav/ConfigPage.dart';
+import 'ConfigPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'BluetoothClass.dart';
+import '../Util/BluetoothClass.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.appBarTitle, this.btlContainer, this.configPageObj}) : super(key: key);
+  MyHomePage(
+      {Key key,
+      this.title,
+      this.appBarTitle,
+      this.btlContainer,
+      this.configPageObj})
+      : super(key: key);
 
   final String title;
   final String appBarTitle;
@@ -35,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // than having to individually change instances of widgets.
 
     String btState = 'Apagado';
-    if (widget.btlContainer.bluetoothInstance.isOn == true ) {
+    if (widget.btlContainer.bluetoothInstance.isOn == true) {
       btState = 'Encendido';
     }
 
@@ -47,32 +52,27 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
-        title: Row(
-            children: <Widget>[
-              Text(widget.appBarTitle),
-              RaisedButton.icon(
-                  onPressed: () {
-                    print('Saltar a config');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => widget.configPageObj),
-                    );
-                  },
-                  icon: Icon(Icons.settings),
-                  label: Text('')
-              ),
-            ]
-        ),
+        title: Row(children: <Widget>[
+          Text(widget.appBarTitle),
+          RaisedButton.icon(
+              onPressed: () {
+                print('Saltar a config');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => widget.configPageObj),
+                );
+              },
+              icon: Icon(Icons.settings),
+              label: Text('')),
+        ]),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Row (
+            Row(
               mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Text(widget.title)
-              ],
+              children: <Widget>[Text(widget.title)],
             ),
             Text('Disponibilidad del bluetooth: ' + estado),
             Text('Estado del bluetoohth:' + btState),

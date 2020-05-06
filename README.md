@@ -1,5 +1,5 @@
-# dav
+# Physio
 
-App to support remote physiotherapy
+Flutter mobile App to support remote physiotherapy
 
 ## Getting Started

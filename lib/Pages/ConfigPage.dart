@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'BluetoothClass.dart';
+import '../Util/BluetoothClass.dart';
 
 class ConfigPage extends StatefulWidget {
   ConfigPage({Key key, this.appBarTitle, this.btlContainer}) : super(key: key);
@@ -36,18 +36,16 @@ class _ConfigPageState extends State<ConfigPage> {
     */
 
     _askUser() async {
-
       try {
         await widget.btlContainer.scanForDevices().then((value) {
           _available = value;
-          print(_available);
+          print("Available: $_available");
           Navigator.of(context).pop();
         });
       } catch (err) {
         print('Caught error: $err');
       }
 
-      /*
       var currentContext = _scaffoldKey.currentContext;
       showDialog(
           context: currentContext,
@@ -68,7 +66,7 @@ class _ConfigPageState extends State<ConfigPage> {
                   )
                 ],
               ));
-       */
+
       /*
       var selected = await showDialog(
           context: context,
