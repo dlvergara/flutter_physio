@@ -83,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
       centerTitle: false,
       title: Row(children: <Widget>[
         Text(widget.appBarTitle),
+        /*
         RaisedButton.icon(
             onPressed: () {
               print('Saltar a config');
@@ -93,6 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             icon: Icon(Icons.settings),
             label: Text('')),
+        */
       ]),
     );
 
@@ -102,7 +104,11 @@ class _MyHomePageState extends State<MyHomePage> {
     print("ps-state: " + _processStatus.toString());
     if (!widget.connectionStatus) {
       textStatus = "Desconectado";
+      if(_processStatus == 1 ) {
+        _processStatus = 0;
+      }
     }
+    print("ps-state: " + _processStatus.toString());
 
     switch(_processStatus) {
       case 0:
