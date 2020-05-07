@@ -3,13 +3,14 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 //We're making these three things global so that we-
 //can check the state and device later in this class
-BluetoothDevice device;
-BluetoothState state;
-BluetoothDeviceState deviceState;
 
 class BluetoothClass {
-  FlutterBlue _bluetoothInstance = FlutterBlue.instance;
+  BluetoothDevice device;
+  BluetoothState state;
+  BluetoothDeviceState deviceState;
 
+  FlutterBlue _bluetoothInstance = FlutterBlue.instance;
+  //BluetoothDevice device;
   StreamSubscription<ScanResult> scanSubscription;
 
   FlutterBlue get bluetoothInstance => _bluetoothInstance;
@@ -59,11 +60,10 @@ class BluetoothClass {
       }
     });
     */
+    // Start scanning
+    this._bluetoothInstance.startScan(timeout: Duration(seconds: 8));
 
     /*
-    // Start scanning
-    this._bluetoothInstance.startScan(timeout: Duration(seconds: 5));
-
     // Listen to scan results
     var scanSubscription = this._bluetoothInstance.scanResults.listen((results) {
       // do something with scan results
@@ -88,11 +88,11 @@ class BluetoothClass {
     // Stop scanning
     this._bluetoothInstance.stopScan();
     */
-    await Future<String>.delayed(const Duration(seconds: 2));
+    await Future<String>.delayed(const Duration(seconds: 10));
     if (device != null) {
       return true;
     }
-    return false;
+    return true;
   }
 
   void stopScanning() {

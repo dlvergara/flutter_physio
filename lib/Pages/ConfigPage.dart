@@ -1,6 +1,3 @@
-// For performing some operations asynchronously
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -36,16 +33,6 @@ class _ConfigPageState extends State<ConfigPage> {
     */
 
     _askUser() async {
-      try {
-        await widget.btlContainer.scanForDevices().then((value) {
-          _available = value;
-          print("Available: $_available");
-          Navigator.of(context).pop();
-        });
-      } catch (err) {
-        print('Caught error: $err');
-      }
-
       var currentContext = _scaffoldKey.currentContext;
       showDialog(
           context: currentContext,
@@ -65,7 +52,19 @@ class _ConfigPageState extends State<ConfigPage> {
                     },
                   )
                 ],
-              ));
+              )
+      );
+      try {
+        await widget.btlContainer.scanForDevices().then((value) {
+          _available = value;
+          if (_available) {
+            print("Available: $_available");
+            Navigator.of(context).pop();
+          }
+        });
+      } catch (err) {
+        print('Caught error: $err');
+      }
 
       /*
       var selected = await showDialog(

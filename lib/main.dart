@@ -10,29 +10,14 @@ void main() {
   runApp(MyApp());
 }
 
-//Search for device
-Future<bool> searchDevice(BluetoothClass bluetoothObj) {
-  return Future.delayed(Duration(seconds: 4), () {
-    bool res = false;
-    try {
-      bluetoothObj.scanForDevices().then((value) {
-        res = value;
-      });
-    } catch (err) {
-      print('Caught error: $err');
-    }
-    return res;
-  });
-}
-
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     FlutterBlue flutterBlue = FlutterBlue.instance;
     BluetoothClass bluetoothObj = new BluetoothClass(flutterBlue);
-
-    //searchDevice(bluetoothObj);
+    bool connectionStatus = false;
 
     ConfigPage confPage = ConfigPage(
       appBarTitle: 'Configuración',
@@ -43,6 +28,7 @@ class MyApp extends StatelessWidget {
       appBarTitle: 'Physio Bot',
       btlContainer: bluetoothObj,
       configPageObj: confPage,
+      connectionStatus: connectionStatus,
     );
 
     MaterialApp mainApp = MaterialApp(
