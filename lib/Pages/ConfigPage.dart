@@ -20,18 +20,8 @@ class _ConfigPageState extends State<ConfigPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*
-    String btState = 'Apagado';
-    if (widget.btlContainer.bluetoothInstance.isOn == true) {
-      btState = 'Encendido';
-    }
 
-    String estado = 'No disponible';
-    if (widget.btlContainer.bluetoothInstance.isAvailable == true) {
-      estado = 'Disponible';
-    }
-    */
-
+    //Function to show dialog
     _askUser() async {
       var currentContext = _scaffoldKey.currentContext;
       showDialog(

@@ -53,13 +53,13 @@ class _MyHomePageState extends State<MyHomePage> {
         try {
           widget.btlContainer.scanForDevices().then((value) {
             print("Response BT: " + value.toString());
+            var ps = 0;
+            if(value) {
+              ps = 1;
+            }
             setState(() {
               widget.connectionStatus = value;
-              if(value) {
-                _processStatus = 1;
-              } else {
-                _processStatus = 0;
-              }
+              _processStatus = ps;
             });
           });
         } catch (err) {
@@ -99,11 +99,12 @@ class _MyHomePageState extends State<MyHomePage> {
     var textStatus = "Conectado";
 
     print("state: " + widget.connectionStatus.toString());
+    print("ps-state: " + _processStatus.toString());
     if (!widget.connectionStatus) {
       textStatus = "Desconectado";
     }
 
-    switch(_processStatus){
+    switch(_processStatus) {
       case 0:
         _btIcon = Icon(
           Icons.bluetooth_disabled,
@@ -132,7 +133,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     var listObject = ListView(
-      //padding: const EdgeInsets.all(8),
       children: <Widget>[
         Card(
           child: ListTile(
@@ -140,7 +140,6 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text('Conexión con el dispositivo:'),
             subtitle: Text(textStatus),
             onTap: _searchDevice,
-            //trailing: Icon(Icons.more_vert),
           ),
         ),
         Card(
@@ -168,7 +167,6 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text('Entrenamiento Remoto'),
             subtitle: Text("Entrenar usando internet"),
             onTap: null,
-            //trailing: Icon(Icons.more_vert),
           ),
         ),
       ],
