@@ -44,11 +44,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _searchDevice() {
     print("click! -> " + widget.connectionStatus.toString());
 
-    setState(() {
-      _processStatus = 2;
-    });
-
     if (!widget.connectionStatus) {
+
+      setState(() {
+        _processStatus = 2;
+      });
+
       Future.delayed(Duration(seconds: 5), () {
         try {
           widget.btlContainer.scanForDevices().then((value) {
@@ -110,7 +111,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     print("ps-state: " + _processStatus.toString());
 
-    switch(_processStatus) {
+    switch(_processStatus)
+    {
       case 0:
         _btIcon = Icon(
           Icons.bluetooth_disabled,
@@ -158,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             title: Text('Entrenamiento Local'),
             subtitle: Text("Entrenar con tu telefono"),
-            onTap: null,
+            onTap: _searchDevice,
             //trailing: Icon(Icons.more_vert),
           ),
         ),
