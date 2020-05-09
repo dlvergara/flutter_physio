@@ -45,6 +45,8 @@ class _ConfigPageState extends State<ConfigPage> {
               )
       );
       try {
+        widget.btlContainer.scanForDevices();
+        /*
         await widget.btlContainer.scanForDevices().then((value) {
           _available = value;
           if (_available) {
@@ -52,6 +54,7 @@ class _ConfigPageState extends State<ConfigPage> {
             Navigator.of(context).pop();
           }
         });
+        */
       } catch (err) {
         print('Caught error: $err');
       }

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../Util/BluetoothClass.dart';
-import 'ConfigPage.dart';
+import 'BtSetting.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage(
@@ -10,7 +10,7 @@ class MyHomePage extends StatefulWidget {
       this.title,
       this.appBarTitle,
       this.btlContainer,
-      this.configPageObj,
+      //this.configPageObj,
       this.connectionStatus})
       : super(key: key);
 
@@ -18,7 +18,8 @@ class MyHomePage extends StatefulWidget {
   final String appBarTitle;
   final BluetoothClass btlContainer;
   bool connectionStatus;
-  ConfigPage configPageObj;
+  //ConfigPage configPageObj;
+  SettingsBtPage settingsPage = SettingsBtPage();
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -41,32 +42,55 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //Search for device
-  void _searchDevice() {
+  Future<void> _searchDevice() async {
     print("click! -> " + widget.connectionStatus.toString());
 
     if (!widget.connectionStatus) {
 
       setState(() {
+        print("cambio de estado");
         _processStatus = 2;
       });
-
-      Future.delayed(Duration(seconds: 5), () {
-        try {
-          widget.btlContainer.scanForDevices().then((value) {
-            print("Response BT: " + value.toString());
-            var ps = 0;
-            if(value) {
-              ps = 1;
-            }
-            setState(() {
-              widget.connectionStatus = value;
-              _processStatus = ps;
-            });
+      try {
+        var value = await widget.btlContainer.scanForDevices();
+        /*
+        widget.btlContainer.scanForDevices().then((value) {
+          print("Response BT: " + value.toString());
+          var ps = 0;
+          if(value) {
+            ps = 1;
+          }
+          setState(() {
+            widget.connectionStatus = value;
+            _processStatus = ps;
           });
-        } catch (err) {
-          widget.connectionStatus = false;
-          print('Caught error: $err');
+        });
+         */
+        var ps = 0;
+        if(value) {
+          ps = 1;
         }
+        print("guardando estado value "+value.toString());
+        setState(() {
+          widget.connectionStatus = value;
+          _processStatus = ps;
+        });
+      } catch (err) {
+        setState(() {
+          widget.connectionStatus = false;
+          _processStatus = 0;
+        });
+        print('Caught error: $err');
+      }
+    } else {
+
+      if (widget.btlContainer.device != null) {
+        widget.btlContainer.device.disconnect();
+      }
+
+      setState(() {
+        _processStatus = 0;
+        widget.connectionStatus = false;
       });
     }
   }
@@ -84,18 +108,16 @@ class _MyHomePageState extends State<MyHomePage> {
       centerTitle: false,
       title: Row(children: <Widget>[
         Text(widget.appBarTitle),
-        /*
         RaisedButton.icon(
             onPressed: () {
               print('Saltar a config');
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => widget.configPageObj),
+                MaterialPageRoute(builder: (context) => widget.settingsPage),
               );
             },
             icon: Icon(Icons.settings),
             label: Text('')),
-        */
       ]),
     );
 

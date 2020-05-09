@@ -10,7 +10,6 @@ class BluetoothClass {
   BluetoothDeviceState deviceState;
 
   FlutterBlue _bluetoothInstance = FlutterBlue.instance;
-  //BluetoothDevice device;
   StreamSubscription<ScanResult> scanSubscription;
 
   FlutterBlue get bluetoothInstance => _bluetoothInstance;
@@ -43,40 +42,51 @@ class BluetoothClass {
 
   ///// **** Scan and Stop Bluetooth Methods  ***** /////
   Future<bool> scanForDevices() async {
-    /*
-    scanSubscription = bluetoothInstance.scan().listen((scanResult) async {
+  //bool scanForDevices() {
+    stopScanning();
+    print("start scanning");
+
+    //await Future<String>.delayed(const Duration(seconds: 3));
+
+    scanSubscription = _bluetoothInstance
+        .scan(timeout: Duration(seconds: 5))
+        .listen((scanResult) {
       String deviceName = scanResult.device.name;
       if (deviceName != "") {
         print(deviceName + " --" + scanResult.device.id.toString());
-
         if (scanResult.device.name == "HC-06" ||
             scanResult.device.name == "physiobotBT") {
             print("found device");
             //Assigning bluetooth device
             device = scanResult.device;
+            device.connect(timeout: Duration(seconds: 5), autoConnect: true);
             //After that we stop the scanning for device
             stopScanning();
         }
       }
     });
-    */
-    // Start scanning
-    this._bluetoothInstance.startScan(timeout: Duration(seconds: 8));
+    print("search finished");
 
     /*
+    print("Searching...");
+    // Start scanning
+    this._bluetoothInstance.startScan(timeout: Duration(seconds: 4));
+
     // Listen to scan results
-    var scanSubscription = this._bluetoothInstance.scanResults.listen((results) {
+    scanSubscription = this._bluetoothInstance.scanResults.listen((results) {
+      print(results);
       // do something with scan results
       for (ScanResult scanResult in results) {
+        print("${scanResult.device.name} found! rssi: ${scanResult.device.id}");
+
         if (scanResult.device.name != "") {
-          print("${scanResult.device.name} found! rssi: ${scanResult.device.id}");
           if (scanResult.device.name == "HC-06" ||
               scanResult.device.name == "physiobotBT") {
-
             //Assigning bluetooth device
             device = scanResult.device;
+            device.connect(timeout: Duration(seconds: 3), autoConnect: true);
             //After that we stop the scanning for device
-            this._bluetoothInstance..stopScan();
+            this._bluetoothInstance.stopScan();
             break;
           }
         }
@@ -87,16 +97,18 @@ class BluetoothClass {
 
     // Stop scanning
     this._bluetoothInstance.stopScan();
-    */
-    await Future<String>.delayed(const Duration(seconds: 10));
+     */
+
+    //await Future<String>.delayed(const Duration(seconds: 10));
+    print(device);
     if (device != null) {
       return true;
     }
-    return true;
+    return false;
   }
 
   void stopScanning() {
-    _bluetoothInstance.stopScan();
+    this._bluetoothInstance.stopScan();
     if (scanSubscription != null) {
       scanSubscription.cancel();
     }
