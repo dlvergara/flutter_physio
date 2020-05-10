@@ -14,6 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     FlutterBlue flutterBlue = FlutterBlue.instance;
+
     BluetoothClass bluetoothObj = new BluetoothClass(flutterBlue);
     bool connectionStatus = false;
 

@@ -14,7 +14,7 @@ class SettingsBtPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      color: Colors.lightBlue,
+      color: Colors.greenAccent,
       home: StreamBuilder<BluetoothState>(
           stream: FlutterBlue.instance.state,
           initialData: BluetoothState.unknown,
@@ -37,7 +37,7 @@ class BluetoothOffScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: Colors.greenAccent,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -213,11 +213,11 @@ class DeviceScreen extends StatelessWidget {
               switch (snapshot.data) {
                 case BluetoothDeviceState.connected:
                   onPressed = () => device.disconnect();
-                  text = 'DISCONNECT';
+                  text = 'Desconectar';
                   break;
                 case BluetoothDeviceState.disconnected:
                   onPressed = () => device.connect();
-                  text = 'CONNECT';
+                  text = 'Conectar';
                   break;
                 default:
                   onPressed = null;
