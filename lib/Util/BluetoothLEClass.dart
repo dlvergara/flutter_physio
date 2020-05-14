@@ -4,7 +4,7 @@ import 'package:flutter_blue/flutter_blue.dart';
 //We're making these three things global so that we-
 //can check the state and device later in this class
 
-class BluetoothClass {
+class BluetoothLEClass {
   BluetoothDevice device;
   BluetoothState state;
   BluetoothDeviceState deviceState;
@@ -19,7 +19,7 @@ class BluetoothClass {
   }
 
   ///Constructor
-  BluetoothClass(FlutterBlue instance) {
+  BluetoothLEClass(FlutterBlue instance) {
     this._bluetoothInstance = instance;
   }
 

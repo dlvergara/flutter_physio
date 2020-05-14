@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../Util/BluetoothClass.dart';
+import '../Util/BluetoothLEClass.dart';
 import 'BtSetting.dart';
+import 'BtConfigPage.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage(
@@ -10,15 +11,15 @@ class MyHomePage extends StatefulWidget {
       this.title,
       this.appBarTitle,
       this.btlContainer,
-      //this.configPageObj,
+      this.configPageObj,
       this.connectionStatus})
       : super(key: key);
 
   final String title;
   final String appBarTitle;
-  final BluetoothClass btlContainer;
+  final BluetoothLEClass btlContainer;
   bool connectionStatus;
-  //ConfigPage configPageObj;
+  BtConfigPage configPageObj;
   SettingsBtPage settingsPage = SettingsBtPage();
 
   @override
@@ -113,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
               print('Saltar a config');
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => widget.settingsPage),
+                MaterialPageRoute(builder: (context) => widget.configPageObj),
               );
             },
             icon: Icon(Icons.settings),

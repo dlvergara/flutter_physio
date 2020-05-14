@@ -1,4 +1,6 @@
-import 'Util/BluetoothClass.dart';
+import 'package:dav/Pages/BtConfigPage.dart';
+
+import 'Util/BluetoothLEClass.dart';
 import 'Pages/HomePage.dart';
 
 import 'package:flutter/material.dart';
@@ -15,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     FlutterBlue flutterBlue = FlutterBlue.instance;
 
-    BluetoothClass bluetoothObj = new BluetoothClass(flutterBlue);
+    BluetoothLEClass bluetoothObj = new BluetoothLEClass(flutterBlue);
     bool connectionStatus = false;
 
     /*
@@ -24,11 +26,13 @@ class MyApp extends StatelessWidget {
       btlContainer: bluetoothObj,
     );
     */
+    BtConfigPage confPage = BtConfigPage();
 
     MyHomePage pagHome = MyHomePage(
       title: 'Bienvenido',
       appBarTitle: 'Physio Bot',
       btlContainer: bluetoothObj,
+      configPageObj: confPage,
       //configPageObj: confPage,
       connectionStatus: connectionStatus,
     );

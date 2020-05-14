@@ -2,13 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../Util/BluetoothClass.dart';
+import '../Util/BluetoothLEClass.dart';
 
 class ConfigPage extends StatefulWidget {
   ConfigPage({Key key, this.appBarTitle, this.btlContainer}) : super(key: key);
 
   final String appBarTitle;
-  final BluetoothClass btlContainer;
+  final BluetoothLEClass btlContainer;
 
   @override
   _ConfigPageState createState() => _ConfigPageState();
