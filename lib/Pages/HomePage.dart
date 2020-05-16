@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../Util/BluetoothClass.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'LocalTraining.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage(
@@ -39,52 +40,55 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    widget.btObj.connected = false;
-    _processStatus = 0;
+    if (!widget.btObj.isConnected) {
+      if (widget.btObj.device == null) {
+        _processStatus = 0;
+        widget.btObj.deviceState = 0; // neutral
 
-    super.initState();
+        // Get current state
+        FlutterBluetoothSerial.instance.state.then((state) {
+          setState(() {
+            widget.btObj.bluetoothState = state;
+          });
+        });
 
-    // Get current state
-    FlutterBluetoothSerial.instance.state.then((state) {
-      setState(() {
-        widget.btObj.bluetoothState = state;
-      });
-    });
+        // If the bluetooth of the device is not enabled,
+        // then request permission to turn on bluetooth
+        // as the app starts up
+        widget.btObj.enableBluetooth();
 
-    widget.btObj.deviceState = 0; // neutral
+        // Listen for further state changes
+        FlutterBluetoothSerial.instance
+            .onStateChanged()
+            .listen((BluetoothState state) {
+          setState(() {
+            widget.btObj.bluetoothState = state;
 
-    // If the bluetooth of the device is not enabled,
-    // then request permission to turn on bluetooth
-    // as the app starts up
-    widget.btObj.enableBluetooth();
+            if (widget.btObj.bluetoothState == BluetoothState.STATE_OFF) {
+              _processStatus = 3;
+            }
 
-    // Listen for further state changes
-    FlutterBluetoothSerial.instance
-        .onStateChanged()
-        .listen((BluetoothState state) {
-      setState(() {
-        widget.btObj.bluetoothState = state;
+            widget.btObj.getPairedDevices();
 
-        if (widget.btObj.bluetoothState == BluetoothState.STATE_OFF) {
-          _processStatus = 3;
-        }
-
-        widget.btObj.getPairedDevices();
-
-        // It is an error to call [setState] unless [mounted] is true.
-        if (!this.mounted) {
-          return;
-        }
-      });
-    });
+            // It is an error to call [setState] unless [mounted] is true.
+            if (!this.mounted) {
+              return;
+            }
+          });
+        });
+      } else {
+        widget.btObj.connectToPhysioBot();
+      }
+    }
+    print("Connection status: " + this.widget.btObj.isConnected.toString());
   }
 
   //Search for device
   Future<void> _searchDevice() async {
 
-    print("click! -> " + widget.btObj.connected.toString());
+    print("click! -> " + widget.btObj.isConnected.toString());
 
-    if (!widget.btObj.connected) {
+    if (!widget.btObj.isConnected) {
 
       setState(() {
         print("cambio de estado");
@@ -96,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
         await widget.btObj.getPairedDevices();
         var value = await widget.btObj.connectToPhysioBot();
         var ps = 0;
-        if(value) {
+        if(value == true) {
           ps = 1;
         }
         print("guardando estado value "+value.toString());
@@ -110,6 +114,10 @@ class _MyHomePageState extends State<MyHomePage> {
         print('Caught error: $err');
       }
     } else {
+      setState(() {
+        _processStatus = 1;
+      });
+      /*
       await widget.btObj.disconnect();
       if (widget.btObj.device != null) {
         show('Desconectado');
@@ -118,11 +126,11 @@ class _MyHomePageState extends State<MyHomePage> {
         _processStatus = 0;
         //widget.connectionStatus = false;
       });
+      */
     }
   }
 
-  // Method to show a Snackbar,
-  // taking message as the text
+  // Method to show a Snackbar
   Future show(
       String message, {
         Duration duration: const Duration(seconds: 3),
@@ -140,14 +148,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
+    Color localTrainingIconColor = Colors.grey;
 
     BtConfigPage btConfig = BtConfigPage();
+    LocalTraining localTrainingPage = LocalTraining(btObj: this.widget.btObj,key: this.widget.key,);
 
     var appBar = AppBar(
       centerTitle: false,
@@ -204,6 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
           semanticLabel: "Conectando...",
         );
         textStatus = "Conectando...";
+        localTrainingIconColor = Colors.green;
         break;
       case 3:
         _btIcon = Icon(
@@ -230,13 +236,25 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ListTile(
             leading: Icon(
               Icons.phonelink_lock,
-              //color: colorDevice,
+              color: localTrainingIconColor,
               size: 24.0,
               semanticLabel: textStatus,
             ),
             title: Text('Entrenamiento Local'),
             subtitle: Text("Entrenar con tu telefono"),
-            onTap: _searchDevice,
+            onTap:  () {
+              print('Saltar!!');
+              if (widget.btObj.device != null) {
+                print('Saltar a local!');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => localTrainingPage),
+                );
+              } else {
+                print('Saltar!!');
+                show("No hay dispositivo conectado");
+              }
+            },
             //trailing: Icon(Icons.more_vert),
           ),
         ),
@@ -250,7 +268,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             title: Text('Entrenamiento Remoto'),
             subtitle: Text("Entrenar usando internet"),
-            onTap: null,
+            onTap: () {
+              print("Entrenamiento en linea");
+            },
           ),
         ),
       ],

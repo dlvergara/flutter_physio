@@ -80,7 +80,6 @@ class BluetoothClass {
   // For retrieving and storing the paired devices
   // in a list.
   Future<void> getPairedDevices() async {
-    print("Call to get paired edvices");
     List<BluetoothDevice> devices = [];
     try {
       devices = await this.bluetooth.getBondedDevices();
@@ -88,22 +87,18 @@ class BluetoothClass {
     } on PlatformException {
       print("PlatformException");
     }
-    print(this.devicesList);
   }
 
   //Function to connect with the HC-06
   Future<bool> connectToPhysioBot() async {
-    print("Call to connect -> " + this.isConnected.toString());
+    print("coonect to physiobot");
     if (!this.isConnected) {
-      print(this.devicesList.toString());
-
       this.devicesList.forEach((element) {
-        print(element);
         if (element.name == "HC-06") {
           this.device = element;
           BluetoothConnection.toAddress(this.device.address)
               .then((_connection) {
-            print('Connected to the device');
+            print('Connected to the device: ' + device.name + " -> " + device.address);
             this.connection = _connection;
           }).catchError((error) {
             print('Cannot connect, exception occurred');
