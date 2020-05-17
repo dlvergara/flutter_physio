@@ -173,8 +173,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var textStatus = "Conectado";
 
-    //print("state: " + widget.connectionStatus.toString());
-    //print("ps-state: " + _processStatus.toString());
     if (!widget.btObj.isConnected) {
       textStatus = "Desconectado";
       if(_processStatus == 1 ) {
@@ -277,6 +275,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: appBar,
       body: listObject,
       /*

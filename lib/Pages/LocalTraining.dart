@@ -1,11 +1,7 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-
 import '../Util/BluetoothClass.dart';
 
 class LocalTraining extends StatefulWidget {
@@ -22,34 +18,38 @@ class _LocalTrainingState extends State<LocalTraining> {
 
   String chanelOne = "";
 
-  void stop() {
-    if (widget.btObj.connection.isConnected) {
-      widget.btObj.connection.close();
+  void listenData(data) {
+    String incomeData = ascii.decode(data);
+    //Map<String, dynamic> incomingData = jsonDecode(incomeData);
+    print('incoming: ${incomeData}');
+
+    // It is an error to call [setState] unless [mounted] is true.
+    if (!this.mounted) {
+      return;
     }
+    setState(() {
+      chanelOne = incomeData;
+    });
+    //widget.btObj.connection.output.add(data); // Sending data
+    if (incomeData.contains('|')) {
+      widget.btObj.connection.finish(); // Closing connection
+      print('Disconnecting by local host');
+    }
+  }
+
+  void doneStream() {
+    print('Disconnected by remote request');
+    widget.btObj.stopStreaming();
   }
 
   void receiveData() {
     try {
       print('receive data > ');
-      widget.btObj.connection.input.listen((data) {
-        String incomeData = ascii.decode(data);
-        if (incomeData == ".00") {
-          incomeData = "0";
-        }
-        //print('Data incoming: ${ascii.decode(data)}');
-        print('Data incoming: ${incomeData}');
-        setState(() {
-          chanelOne = incomeData;//int.parse();
-        });
-        //widget.btObj.connection.output.add(data); // Sending data
-        if (incomeData.contains('|')) {
-          widget.btObj.connection.finish(); // Closing connection
-          print('Disconnecting by local host');
-        }
-      }).onDone(() {
-        print('Disconnected by remote request');
-        stop();
-      });
+      if (widget.btObj.streamData == null) {
+        widget.btObj.streamData = widget.btObj.connection.input.listen(listenData,onDone: doneStream);
+      } else {
+        widget.btObj.streamData.resume();
+      }
     } catch (exception) {
       print('Cannot connect, exception occured');
     }
@@ -58,9 +58,16 @@ class _LocalTrainingState extends State<LocalTraining> {
   void start() {
     print('Start receiving...');
     if (!widget.btObj.isConnected) {
+      if ( widget.btObj.streamData != null ) {
+        widget.btObj.streamData.resume();
+      } else {
+        receiveData();
+      }
+    } else {
       print('Request connection');
-      var value = widget.btObj.connectToPhysioBot();
-      print(value);
+      var value = widget.btObj.connectToPhysioBot().then((value) {
+        receiveData();
+      });
     }
     receiveData();
   }
@@ -73,7 +80,7 @@ class _LocalTrainingState extends State<LocalTraining> {
 
   @override
   void dispose() {
-    stop();
+    widget.btObj.stopStreaming();
     super.dispose();
   }
 

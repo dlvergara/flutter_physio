@@ -1,4 +1,5 @@
 // For using PlatformException
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
@@ -7,6 +8,7 @@ class BluetoothClass {
   // Initializing the Bluetooth connection state to be unknown
   BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
   BluetoothDevice _device;
+  StreamSubscription streamData;
 
   // Get the instance of the Bluetooth
   FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
@@ -91,7 +93,7 @@ class BluetoothClass {
 
   //Function to connect with the HC-06
   Future<bool> connectToPhysioBot() async {
-    print("coonect to physiobot");
+    print("conect to physiobot");
     if (!this.isConnected) {
       this.devicesList.forEach((element) {
         if (element.name == "HC-06") {
@@ -114,5 +116,15 @@ class BluetoothClass {
     this.connection.close();
     this.deviceState = 0;
     this.connected = false;
+  }
+
+  void stopStreaming() {
+    if (this.connection.isConnected) {
+      if ( this.streamData != null && !this.streamData.isPaused) {
+        this.streamData.pause();
+      } else {
+        this.connection.close();
+      }
+    }
   }
 }
