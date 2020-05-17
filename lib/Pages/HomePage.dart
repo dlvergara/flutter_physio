@@ -37,6 +37,13 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   @override
+  void dispose() {
+    widget.btObj.disconnect();
+    widget.btObj.device = null;
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
 
@@ -90,28 +97,44 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (!widget.btObj.isConnected) {
 
+      var ps = 2;
       setState(() {
         print("cambio de estado");
-        _processStatus = 2;
+        _processStatus = ps;
       });
 
       try {
         //var value = await widget.btlContainer.scanForDevices();
-        await widget.btObj.getPairedDevices();
-        var value = await widget.btObj.connectToPhysioBot();
-        var ps = 0;
+        await widget.btObj.getPairedDevices().then((list) {});
+        bool value = await widget.btObj.connectToPhysioBot();
+
+        print(value);
         if(value == true) {
           ps = 1;
+        } else {
+          ps = 2;
         }
         print("guardando estado value "+value.toString());
         setState(() {
           _processStatus = ps;
         });
+
       } catch (err) {
         setState(() {
           _processStatus = 0;
         });
         print('Caught error: $err');
+      } finally {
+        print("Compleatdo");
+        bool value = this.widget.btObj.isConnected;
+        if(value == true) {
+          ps = 1;
+        } else {
+          ps = 2;
+        }
+        setState(() {
+          _processStatus = ps;
+        });
       }
     } else {
       setState(() {

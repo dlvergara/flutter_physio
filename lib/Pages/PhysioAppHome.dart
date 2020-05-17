@@ -327,7 +327,7 @@ class _BluetoothAppState extends State<BluetoothApp> {
       show('No device selected');
     } else {
       if (!widget.btObj.isConnected) {
-        await BluetoothConnection.toAddress(widget.btObj.device.address)
+        BluetoothConnection.toAddress(widget.btObj.device.address)
             .then((_connection) {
           print('Connected to the device');
           widget.btObj.connection = _connection;

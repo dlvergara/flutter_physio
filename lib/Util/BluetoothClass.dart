@@ -98,6 +98,7 @@ class BluetoothClass {
       this.devicesList.forEach((element) {
         if (element.name == "HC-06") {
           this.device = element;
+
           BluetoothConnection.toAddress(this.device.address)
               .then((_connection) {
             print('Connected to the device: ' + device.name + " -> " + device.address);
@@ -106,6 +107,9 @@ class BluetoothClass {
             print('Cannot connect, exception occurred');
             print(error);
           });
+
+          //this.connection = BluetoothConnection.toAddress(this.device.address) as BluetoothConnection;
+          //print('Connected to the device: ' + device.name + " -> " + device.address);
         }
       });
     }
