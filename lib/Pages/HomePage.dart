@@ -38,8 +38,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
+    widget.btObj.connection.dispose();
     widget.btObj.disconnect();
     widget.btObj.device = null;
+
     super.dispose();
   }
 

@@ -116,7 +116,7 @@ class BluetoothClass {
     return this.isConnected;
   }
 
-  disconnect(){
+  void disconnect() {
     this.connection.close();
     this.deviceState = 0;
     this.connected = false;
