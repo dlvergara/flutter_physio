@@ -1,8 +1,12 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:dav/BtConfigPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../Util/BluetoothClass.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:flutter/services.dart';
+import '../Util/BluetoothClass.dart';
 import 'LocalTraining.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -26,6 +30,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Initializing a global key, as it would help us in showing a SnackBar later
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  var connectivityResult;
+  String _connectionStatus = 'sin conexión';
+  ConnectivityResult _connectivityStatus;
+  final Connectivity _connectivity = Connectivity();
+  StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   int _processStatus = 0;
 
@@ -35,6 +44,107 @@ class _MyHomePageState extends State<MyHomePage> {
     size: 24.0,
     semanticLabel: "",
   );
+
+  // Update connection status function
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    switch (result) {
+      case ConnectivityResult.wifi:
+        String wifiName, wifiBSSID, wifiIP;
+
+        try {
+          if (Platform.isIOS) {
+            LocationAuthorizationStatus status =
+            await _connectivity.getLocationServiceAuthorization();
+            if (status == LocationAuthorizationStatus.notDetermined) {
+              status =
+              await _connectivity.requestLocationServiceAuthorization();
+            }
+            if (status == LocationAuthorizationStatus.authorizedAlways ||
+                status == LocationAuthorizationStatus.authorizedWhenInUse) {
+              wifiName = await _connectivity.getWifiName();
+            } else {
+              wifiName = await _connectivity.getWifiName();
+            }
+          } else {
+            wifiName = await _connectivity.getWifiName();
+          }
+        } on PlatformException catch (e) {
+          print(e.toString());
+          wifiName = "Failed to get Wifi Name";
+        }
+
+        try {
+          if (Platform.isIOS) {
+            LocationAuthorizationStatus status =
+            await _connectivity.getLocationServiceAuthorization();
+            if (status == LocationAuthorizationStatus.notDetermined) {
+              status =
+              await _connectivity.requestLocationServiceAuthorization();
+            }
+            if (status == LocationAuthorizationStatus.authorizedAlways ||
+                status == LocationAuthorizationStatus.authorizedWhenInUse) {
+              wifiBSSID = await _connectivity.getWifiBSSID();
+            } else {
+              wifiBSSID = await _connectivity.getWifiBSSID();
+            }
+          } else {
+            wifiBSSID = await _connectivity.getWifiBSSID();
+          }
+        } on PlatformException catch (e) {
+          print(e.toString());
+          wifiBSSID = "Failed to get Wifi BSSID";
+        }
+
+        try {
+          wifiIP = await _connectivity.getWifiIP();
+        } on PlatformException catch (e) {
+          print(e.toString());
+          wifiIP = "Failed to get Wifi IP";
+        }
+
+        setState(() {
+          this._connectivityStatus = result;
+          _connectionStatus = '$result\n'
+              'Wifi Name: $wifiName\n';
+              //'Wifi BSSID: $wifiBSSID\n'
+              //'Wifi IP: $wifiIP\n';
+        });
+        break;
+      case ConnectivityResult.mobile:
+      case ConnectivityResult.none:
+        setState(() {
+          _connectionStatus = result.toString();
+          this._connectivityStatus = result;
+        });
+        break;
+      default:
+        setState(() {
+          _connectionStatus = 'Falló en obtener conectividad';
+          this._connectivityStatus = result;
+        });
+        break;
+    }
+  }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initConnectivity() async {
+    ConnectivityResult result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print(e.toString());
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
 
   @override
   void dispose() {
@@ -89,7 +199,11 @@ class _MyHomePageState extends State<MyHomePage> {
         widget.btObj.connectToPhysioBot();
       }
     }
-    print("Connection status: " + this.widget.btObj.isConnected.toString());
+    print("BT Connection status: " + this.widget.btObj.isConnected.toString());
+
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   //Search for device
@@ -175,25 +289,26 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
 
     Color localTrainingIconColor = Colors.grey;
+    Color remoteTrainingIconColor = Colors.grey;
 
     BtConfigPage btConfig = BtConfigPage();
     LocalTraining localTrainingPage = LocalTraining(btObj: this.widget.btObj,key: this.widget.key,);
 
     var appBar = AppBar(
       centerTitle: false,
-      title: Row(children: <Widget>[
-        Text(widget.appBarTitle),
-        RaisedButton.icon(
-            onPressed: () {
-              print('Saltar a config');
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => btConfig),
-              );
-            },
-            icon: Icon(Icons.settings),
-            label: Text('')),
-      ]),
+      title: Text(widget.appBarTitle),
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.settings),
+          onPressed: () {
+            print('Saltar a config');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => btConfig),
+            );
+          },
+        ),
+      ]
     );
 
     var textStatus = "Conectado";
@@ -215,6 +330,7 @@ class _MyHomePageState extends State<MyHomePage> {
           size: 24.0,
           semanticLabel: "Desconectado",
         );
+        localTrainingIconColor = Colors.grey;
         break;
       case 1:
         _btIcon = Icon(
@@ -223,6 +339,10 @@ class _MyHomePageState extends State<MyHomePage> {
           size: 24.0,
           semanticLabel: "Conectado",
         );
+        localTrainingIconColor = Colors.green;
+        if (this._connectivityStatus != ConnectivityResult.none) {
+          remoteTrainingIconColor = Colors.green;
+        }
         break;
       case 2:
         _btIcon = Icon(
@@ -232,7 +352,7 @@ class _MyHomePageState extends State<MyHomePage> {
           semanticLabel: "Conectando...",
         );
         textStatus = "Conectando...";
-        localTrainingIconColor = Colors.green;
+        localTrainingIconColor = Colors.blueAccent;
         break;
       case 3:
         _btIcon = Icon(
@@ -242,6 +362,7 @@ class _MyHomePageState extends State<MyHomePage> {
           semanticLabel: "No disponible",
         );
         textStatus = "No disponible";
+        localTrainingIconColor = Colors.grey;
         break;
     }
 
@@ -266,7 +387,6 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text('Entrenamiento Local'),
             subtitle: Text("Entrenar con tu telefono"),
             onTap:  () {
-              print('Saltar!!');
               if (widget.btObj.device != null) {
                 print('Saltar a local!');
                 Navigator.push(
@@ -285,14 +405,31 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ListTile(
             leading: Icon(
               Icons.phonelink,
-              //color: colorDevice,
+              color: remoteTrainingIconColor,
               size: 24.0,
               semanticLabel: "Entrenamiento remoto",
             ),
-            title: Text('Entrenamiento Remoto'),
-            subtitle: Text("Entrenar usando internet"),
+            title: Text("Entrenar usando internet"),
+            subtitle: Text(_connectionStatus),
             onTap: () {
               print("Entrenamiento en linea");
+              if (this._connectivityStatus != ConnectivityResult.none && widget.btObj.device != null) {
+                print('Saltar a remoto!');
+                /*
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => localTrainingPage),
+                );
+                */
+              } else {
+                print('Saltar!!');
+                if (this._connectivityStatus == ConnectivityResult.none ) {
+                  show("No hay conexión a internet");
+                }
+                if (widget.btObj.device == null) {
+                  show("No hay dispositivo conectado ");
+                }
+              }
             },
           ),
         ),
