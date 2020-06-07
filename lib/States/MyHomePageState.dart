@@ -7,7 +7,7 @@ import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/services.dart';
 import '../Pages/HomePage.dart';
-import '../Util/BluetoothClass.dart';
+//import '../Util/BluetoothClass.dart';
 import '../Pages/LocalTraining.dart';
 
 class MyHomePageState extends State<MyHomePage> {
@@ -268,14 +268,9 @@ class MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-
-    Color localTrainingIconColor = Colors.grey;
-    Color remoteTrainingIconColor = Colors.grey;
-
+  // Build Appbar
+  AppBar getAppBar() {
     BtConfigPage btConfig = BtConfigPage();
-    LocalTraining localTrainingPage = LocalTraining(btObj: this.widget.btObj,key: this.widget.key,);
 
     var appBar = AppBar(
         centerTitle: false,
@@ -293,6 +288,18 @@ class MyHomePageState extends State<MyHomePage> {
           ),
         ]
     );
+
+    return appBar;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    Color localTrainingIconColor = Colors.grey;
+    Color remoteTrainingIconColor = Colors.grey;
+
+    LocalTraining localTrainingPage = LocalTraining(btObj: this.widget.btObj,key: this.widget.key,);
+    var appBar = this.getAppBar();
 
     var textStatus = "Conectado";
 
