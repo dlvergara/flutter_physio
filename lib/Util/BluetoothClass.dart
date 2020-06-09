@@ -103,6 +103,7 @@ class BluetoothClass {
               .then((_connection) {
             print('Connected to the device: ' + device.name + " -> " + device.address);
             this.connection = _connection;
+            //yield _connection;
           }).catchError((error) {
             print('Cannot connect, exception occurred');
             print(error);

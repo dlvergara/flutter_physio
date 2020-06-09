@@ -1,21 +1,24 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
-import '../classess/Message.dart';
+import 'package:http/http.dart';
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../Util/BluetoothClass.dart';
 import 'package:flutter_charts/flutter_charts.dart';
+import '../classess/Message.dart';
+import '../classess/Session.dart';
 
-class LocalTraining extends StatefulWidget {
-  LocalTraining({Key key, this.btObj}) : super(key: key);
+class RemoteTraining extends StatefulWidget {
+  RemoteTraining({Key key, this.btObj}) : super(key: key);
   BluetoothClass btObj;
 
   @override
-  _LocalTrainingState createState() => _LocalTrainingState();
+  _RemoteTrainingState createState() => _RemoteTrainingState();
 }
 
-class _LocalTrainingState extends State<LocalTraining> {
+class _RemoteTrainingState extends State<RemoteTraining> {
   LineChartOptions _lineChartOptions;
   ChartOptions _verticalBarChartOptions;
   LabelLayoutStrategy _xContainerLabelLayoutStrategy;
@@ -29,6 +32,8 @@ class _LocalTrainingState extends State<LocalTraining> {
 
   double valChannelOne = 1;
   double valChannelTwo = 0;
+
+  Session activeSession;
 
   void defineOptionsAndData() {
     _lineChartOptions = new LineChartOptions();
@@ -44,21 +49,23 @@ class _LocalTrainingState extends State<LocalTraining> {
     ];
     _chartData.dataRows = [
       [
-        this.valChannelOne, 0,
+        this.valChannelOne,
+        0,
       ],
       [
-        0, this.valChannelTwo,
+        0,
+        this.valChannelTwo,
       ],
     ];
-    _chartData.xLabels = ["1", "2",];
+    _chartData.xLabels = [
+      "1",
+      "2",
+    ];
     _chartData.assignDataRowsDefaultColors();
     // Note: ChartOptions.useUserProvidedYLabels default is still used (false);
   }
 
   void listenData(data) {
-    //String incomeData = ascii.decode(data);
-    //print('incoming: ${incomeData}');
-
     // Allocate buffer for parsed data
     int backspacesCounter = 0;
     data.forEach((byte) {
@@ -91,7 +98,7 @@ class _LocalTrainingState extends State<LocalTraining> {
       setState(() {
         chanelOne = backspacesCounter > 0
             ? _messageBuffer.substring(
-            0, _messageBuffer.length - backspacesCounter)
+                0, _messageBuffer.length - backspacesCounter)
             : _messageBuffer + dataString.substring(0, index);
 
         var jsonData = jsonDecode(chanelOne);
@@ -111,7 +118,7 @@ class _LocalTrainingState extends State<LocalTraining> {
     } else {
       _messageBuffer = (backspacesCounter > 0
           ? _messageBuffer.substring(
-          0, _messageBuffer.length - backspacesCounter)
+              0, _messageBuffer.length - backspacesCounter)
           : _messageBuffer + dataString);
     }
 
@@ -141,7 +148,11 @@ class _LocalTrainingState extends State<LocalTraining> {
     try {
       print('receive data > ');
       if (widget.btObj.streamData == null) {
-        widget.btObj.streamData = widget.btObj.connection.input.listen(listenData, onDone: doneStream, onError: errorHandler, cancelOnError: false);
+        widget.btObj.streamData = widget.btObj.connection.input.listen(
+            listenData,
+            onDone: doneStream,
+            onError: errorHandler,
+            cancelOnError: false);
       } else {
         widget.btObj.streamData.resume();
       }
@@ -153,7 +164,7 @@ class _LocalTrainingState extends State<LocalTraining> {
   void start() {
     print('Start receiving...');
     if (!widget.btObj.isConnected) {
-      if ( widget.btObj.streamData != null ) {
+      if (widget.btObj.streamData != null) {
         widget.btObj.streamData.resume();
       } else {
         receiveData();
@@ -170,8 +181,34 @@ class _LocalTrainingState extends State<LocalTraining> {
   @override
   void initState() {
     super.initState();
-    start();
+    //start();//todo no olvidar activar
     defineOptionsAndData();
+
+    /*
+    Stream<Session> stream = new Stream.fromFuture(getData());
+    stream.timeout(Duration(seconds: 60)).listen((data) {
+      this.activeSession = data;
+      print("DataReceived: "+data.session_id);
+    }, onDone: () {
+      print("Task Done");
+      //TODO: pintar en verde
+    }, onError: (error) {
+      //TODO pintar en rojo
+      print("Some Error");
+    });
+    */
+  }
+
+  Future<Session> getSessionData() async {
+    // make GET request
+    String url = 'http://107.170.208.14:8080/v1/session';
+    Response response = await get(url);
+    String json = response.body;
+
+    Map<String, dynamic> map = jsonDecode(json);
+    this.activeSession = Session.fromJson(map);
+
+    return activeSession;
   }
 
   @override
@@ -187,14 +224,13 @@ class _LocalTrainingState extends State<LocalTraining> {
   // Now, its time to build the UI
   @override
   Widget build(BuildContext context) {
-
     VerticalBarChart verticalBarChart = new VerticalBarChart(
       painter: new VerticalBarChartPainter(),
       container: new VerticalBarChartContainer(
         chartData: _chartData, // @required
         chartOptions: _verticalBarChartOptions, // @required
         xContainerLabelLayoutStrategy:
-        _xContainerLabelLayoutStrategy, // @optional
+            _xContainerLabelLayoutStrategy, // @optional
       ),
     );
 
@@ -208,36 +244,63 @@ class _LocalTrainingState extends State<LocalTraining> {
     Text titleText = Text('Recibir info');
     Text subText = Text("sub");
 
+    AppBar bar = AppBar(
+      title: Text("Entrenamiento en línea"),
+      backgroundColor: Colors.greenAccent,
+      actions: <Widget>[
+        FlatButton.icon(
+          icon: Icon(
+            Icons.refresh,
+            color: Colors.white,
+          ),
+          label: Text(
+            "Refresh",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          splashColor: Colors.deepPurple,
+          onPressed: null,
+        ),
+      ],
+    );
+
     return MaterialApp(
       home: Scaffold(
         key: _scaffoldKey,
-        appBar: AppBar(
-          title: Text("Entrenamiento en casa"),
-          backgroundColor: Colors.greenAccent,
-          actions: <Widget>[
-            FlatButton.icon(
-              icon: Icon(
-                Icons.refresh,
-                color: Colors.white,
-              ),
-              label: Text(
-                "Refresh",
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              splashColor: Colors.deepPurple,
-              onPressed: null,
-            ),
-          ],
-        ),
+        appBar: bar,
         body: new Center(
           child: new Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              FutureBuilder<Session>(
+                  future: getSessionData(),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<Session> snapshot) {
+                    String message = "";
+                    if (snapshot.hasError) {
+                      message = "Error: " + snapshot.error.toString();
+                    } else {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.none:
+                          message = "sin conexión";
+                          break;
+                        case ConnectionState.waiting:
+                          message = "Esperando...";
+                          break;
+                        case ConnectionState.active:
+                          message = "Descargando...";
+                          break;
+                        case ConnectionState.done:
+                          message = "Sesión: " + snapshot.data.session_id;
+                          break;
+                      }
+                    }
+                    return Text(message);
+                  }),
               Card(
                 child: ListTile(
                   leading: icon,

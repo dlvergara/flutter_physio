@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dav/BtConfigPage.dart';
+import 'package:dav/Pages/RemoteTraining.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -53,7 +54,7 @@ class MyHomePageState extends State<MyHomePage> {
           }
         } on PlatformException catch (e) {
           print(e.toString());
-          wifiName = "Failed to get Wifi Name";
+          wifiName = "Falló encontrando el nombre del Wifi";
         }
 
         try {
@@ -75,7 +76,7 @@ class MyHomePageState extends State<MyHomePage> {
           }
         } on PlatformException catch (e) {
           print(e.toString());
-          wifiBSSID = "Failed to get Wifi BSSID";
+          wifiBSSID = "Falló encontrando el nombre del Wifi";
         }
 
         try {
@@ -84,11 +85,15 @@ class MyHomePageState extends State<MyHomePage> {
           print(e.toString());
           wifiIP = "Failed to get Wifi IP";
         }
+        print(wifiName);
+        print(wifiIP);
+        print(wifiBSSID);
 
         setState(() {
           this._connectivityStatus = result;
           _connectionStatus = '$result\n'
-              'Wifi Name: $wifiName\n';
+              'Wifi: $wifiName\n'
+              'Dirección: $wifiIP';
           //'Wifi BSSID: $wifiBSSID\n'
           //'Wifi IP: $wifiIP\n';
         });
@@ -294,18 +299,24 @@ class MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     Color localTrainingIconColor = Colors.grey;
     Color remoteTrainingIconColor = Colors.grey;
 
-    LocalTraining localTrainingPage = LocalTraining(btObj: this.widget.btObj,key: this.widget.key,);
+    LocalTraining localTrainingPage = LocalTraining(
+      btObj: this.widget.btObj,
+      key: this.widget.key,
+    );
+    RemoteTraining remoteTrainingPage = RemoteTraining(
+      btObj: this.widget.btObj,
+      key: this.widget.key,
+    );
     var appBar = this.getAppBar();
 
     var textStatus = "Conectado";
 
     if (!widget.btObj.isConnected) {
       textStatus = "Desconectado";
-      if(_processStatus == 1 ) {
+      if (_processStatus == 1) {
         _processStatus = 0;
       }
     }
@@ -356,78 +367,83 @@ class MyHomePageState extends State<MyHomePage> {
         break;
     }
 
-    var listObject = ListView(
-      children: <Widget>[
-        Card(
-          child: ListTile(
-            leading: _btIcon,
-            title: Text('Conexión con el dispositivo:'),
-            subtitle: Text(textStatus),
-            onTap: _searchDevice,
-          ),
+    var localConnection = Card(
+      child: ListTile(
+        leading: _btIcon,
+        title: Text('Conexión con el dispositivo:'),
+        subtitle: Text(textStatus),
+        onTap: _searchDevice,
+      ),
+    );
+    var localTraining = Card(
+      child: ListTile(
+        leading: Icon(
+          Icons.phonelink_lock,
+          color: localTrainingIconColor,
+          size: 24.0,
+          semanticLabel: textStatus,
         ),
-        Card(
-          child: ListTile(
-            leading: Icon(
-              Icons.phonelink_lock,
-              color: localTrainingIconColor,
-              size: 24.0,
-              semanticLabel: textStatus,
-            ),
-            title: Text('Entrenamiento Local'),
-            subtitle: Text("Entrenar con tu telefono"),
-            onTap:  () {
-              if (widget.btObj.device != null) {
-                print('Saltar a local!');
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => localTrainingPage),
-                );
-              } else {
-                show("No hay dispositivo conectado");
-              }
-            },
-            //trailing: Icon(Icons.more_vert),
-          ),
+        title: Text('Entrenamiento Local'),
+        subtitle: Text("Entrenar con tu telefono"),
+        onTap: () {
+          if (widget.btObj.device != null) {
+            print('Saltar a local!');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => localTrainingPage),
+            );
+          } else {
+            show("No hay dispositivo conectado");
+          }
+        },
+        //trailing: Icon(Icons.more_vert),
+      ),
+    );
+    var remoteTraining = Card(
+      child: ListTile(
+        leading: Icon(
+          Icons.phonelink,
+          color: remoteTrainingIconColor,
+          size: 24.0,
+          semanticLabel: "Entrenamiento remoto",
         ),
-        Card(
-          child: ListTile(
-            leading: Icon(
-              Icons.phonelink,
-              color: remoteTrainingIconColor,
-              size: 24.0,
-              semanticLabel: "Entrenamiento remoto",
-            ),
-            title: Text("Entrenar usando internet"),
-            subtitle: Text(_connectionStatus),
-            onTap: () {
-              print("Entrenamiento en linea");
-              if (this._connectivityStatus != ConnectivityResult.none && widget.btObj.device != null) {
-                print('Saltar a remoto!');
-                /*
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => localTrainingPage),
-                );
-                */
-              } else {
-                if (this._connectivityStatus == ConnectivityResult.none ) {
-                  show("No hay conexión a internet");
-                }
-                if (widget.btObj.device == null) {
-                  show("No hay dispositivo conectado ");
-                }
-              }
-            },
-          ),
-        ),
-      ],
+        title: Text("Entrenar usando internet"),
+        subtitle: Text(_connectionStatus),
+        onTap: () {
+          print("Entrenamiento en linea");
+          var jump = true;
+          if (this._connectivityStatus != ConnectivityResult.none &&
+              widget.btObj.device != null) {
+            jump = true;
+          }
+          if (jump) {
+            print('Saltar a remoto!');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => remoteTrainingPage),
+            );
+          } else {
+            if (this._connectivityStatus == ConnectivityResult.none) {
+              show("No hay conexión a internet");
+            }
+            if (widget.btObj.device == null) {
+              show("No hay dispositivo conectado ");
+            }
+          }
+        },
+      ),
     );
 
     return Scaffold(
       key: _scaffoldKey,
       appBar: appBar,
-      body: listObject,
+      body: ListView(
+        children: <Widget>[
+          localConnection,
+          localTraining,
+          remoteTraining,
+        ],
+      ),
       /*
       floatingActionButton: FloatingActionButton(
         onPressed: _searchDevice,
