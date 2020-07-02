@@ -1,14 +1,13 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:http/http.dart';
-import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../Util/BluetoothClass.dart';
 import 'package:flutter_charts/flutter_charts.dart';
-import '../classess/Message.dart';
-import '../classess/Session.dart';
+import '../classes/PhysioMessage.dart';
+import '../classes/PhysioSession.dart';
+import 'package:kafka/kafka.dart';
 
 class RemoteTraining extends StatefulWidget {
   RemoteTraining({Key key, this.btObj}) : super(key: key);
@@ -19,7 +18,6 @@ class RemoteTraining extends StatefulWidget {
 }
 
 class _RemoteTrainingState extends State<RemoteTraining> {
-  LineChartOptions _lineChartOptions;
   ChartOptions _verticalBarChartOptions;
   LabelLayoutStrategy _xContainerLabelLayoutStrategy;
   ChartData _chartData;
@@ -27,16 +25,16 @@ class _RemoteTrainingState extends State<RemoteTraining> {
   // Initializing a global key, as it would help us in showing a SnackBar later
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   String _messageBuffer = '';
-  List<Message> messages = List<Message>();
+  List<PhysioMessage> messages = List<PhysioMessage>();
   String chanelOne = "";
 
   double valChannelOne = 1;
   double valChannelTwo = 0;
 
-  Session activeSession;
+  PhysioSession activeSession;
 
   void defineOptionsAndData() {
-    _lineChartOptions = new LineChartOptions();
+    LineChartOptions _lineChartOptions = new LineChartOptions();
     _verticalBarChartOptions = new VerticalBarChartOptions();
     _xContainerLabelLayoutStrategy = new DefaultIterativeLabelLayoutStrategy(
       options: _verticalBarChartOptions,
@@ -107,7 +105,7 @@ class _RemoteTrainingState extends State<RemoteTraining> {
         this.valChannelTwo = jsonData[2];
 
         messages.add(
-          Message(
+          PhysioMessage(
             1,
             chanelOne,
           ),
@@ -171,7 +169,7 @@ class _RemoteTrainingState extends State<RemoteTraining> {
       }
     } else {
       print('Request connection');
-      var value = widget.btObj.connectToPhysioBot().then((value) {
+      widget.btObj.connectToPhysioBot().then((value) {
         receiveData();
       });
     }
@@ -183,30 +181,16 @@ class _RemoteTrainingState extends State<RemoteTraining> {
     super.initState();
     //start();//todo no olvidar activar
     defineOptionsAndData();
-
-    /*
-    Stream<Session> stream = new Stream.fromFuture(getData());
-    stream.timeout(Duration(seconds: 60)).listen((data) {
-      this.activeSession = data;
-      print("DataReceived: "+data.session_id);
-    }, onDone: () {
-      print("Task Done");
-      //TODO: pintar en verde
-    }, onError: (error) {
-      //TODO pintar en rojo
-      print("Some Error");
-    });
-    */
   }
 
-  Future<Session> getSessionData() async {
+  Future<PhysioSession> getSessionData() async {
     // make GET request
     String url = 'http://107.170.208.14:8080/v1/session';
     Response response = await get(url);
     String json = response.body;
 
     Map<String, dynamic> map = jsonDecode(json);
-    this.activeSession = Session.fromJson(map);
+    this.activeSession = PhysioSession.fromJson(map);
 
     return activeSession;
   }
@@ -219,6 +203,50 @@ class _RemoteTrainingState extends State<RemoteTraining> {
 
   void _changeAction() {
     print("Cambiar de accion");
+  }
+
+  Future<String> getNotifications() async {
+    print("start process");
+
+    var session = Session(['107.170.208.14:9092']);
+    var consumer = new Consumer(
+        "client-consumer", StringDeserializer(), StringDeserializer(), session);
+    await consumer.subscribe(['client-notifications']);
+    var queue = consumer.poll();
+    while (await queue.moveNext()) {
+      var records = queue.current;
+      for (var record in records.records) {
+        show("${record.value}");
+        print(
+            "[${record.topic}:${record.partition}], offset: ${record
+                .offset}, ${record.key}, ${record.value}, ts: ${record
+                .timestamp}");
+      }
+      await consumer.commit();
+    }
+    await session.close();
+    print("finished process");
+
+    return "finished";
+  }
+
+  // Method to show a Snackbar
+  Future show(String message, {
+    Duration duration: const Duration(seconds: 3),
+  }) async {
+    await new Future.delayed(new Duration(milliseconds: 100));
+    try {
+      _scaffoldKey.currentState.showSnackBar(
+        new SnackBar(
+          content: new Text(
+            message,
+          ),
+          duration: duration,
+        ),
+      );
+    } catch (error) {
+      print(error);
+    }
   }
 
   // Now, its time to build the UI
@@ -268,6 +296,15 @@ class _RemoteTrainingState extends State<RemoteTraining> {
       ],
     );
 
+    Stream<String> stream = new Stream.fromFuture(getNotifications());
+    stream.timeout(Duration(seconds: 60)).listen((data) {
+      print("DataReceived: " + data.toString());
+    }, onDone: () {
+      print("Task Done");
+    }, onError: (error) {
+      print("Some Error" + error.toString());
+    });
+
     return MaterialApp(
       home: Scaffold(
         key: _scaffoldKey,
@@ -276,10 +313,11 @@ class _RemoteTrainingState extends State<RemoteTraining> {
           child: new Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              FutureBuilder<Session>(
+              FutureBuilder<PhysioSession>(
                   future: getSessionData(),
                   builder:
-                      (BuildContext context, AsyncSnapshot<Session> snapshot) {
+                      (BuildContext context,
+                      AsyncSnapshot<PhysioSession> snapshot) {
                     String message = "";
                     if (snapshot.hasError) {
                       message = "Error: " + snapshot.error.toString();

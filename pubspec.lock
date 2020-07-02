@@ -44,7 +44,7 @@ packages:
     source: hosted
     version: "1.14.12"
   connectivity:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: connectivity
       url: "https://pub.dartlang.org"
@@ -112,14 +112,14 @@ packages:
     source: hosted
     version: "0.7.2"
   flutter_bluetooth_serial:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_bluetooth_serial
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.2"
   flutter_charts:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_charts
       url: "https://pub.dartlang.org"
@@ -131,7 +131,7 @@ packages:
     source: sdk
     version: "0.0.0"
   http:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -151,6 +151,22 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.12"
+  kafka:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "kafka-0.10"
+      resolved-ref: "57999d72ee9c60bb7dcc59255031ae3c54ac764c"
+      url: "https://github.com/dart-kafka/kafka.git"
+    source: git
+    version: "0.1.0"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.11.4"
   matcher:
     dependency: transitive
     description:
@@ -193,6 +209,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  pool:
+    dependency: transitive
+    description:
+      name: pool
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.0"
   protobuf:
     dependency: transitive
     description:

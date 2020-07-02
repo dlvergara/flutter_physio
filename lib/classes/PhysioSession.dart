@@ -1,12 +1,12 @@
-class Session {
+class PhysioSession {
   String session_id;
   String ip_address;
   DateTime date;
 
-  Session(this.session_id, this.ip_address);
+  PhysioSession(this.session_id, this.ip_address);
 
   // named constructor
-  Session.fromJson(Map<String, dynamic> json)
+  PhysioSession.fromJson(Map<String, dynamic> json)
       : session_id = json['session_id'],
         ip_address = json['ip_address'],
         date = DateTime.parse(json['date']);

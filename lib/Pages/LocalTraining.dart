@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:typed_data';
-import '../classess/Message.dart';
+import '../classes/PhysioMessage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../Util/BluetoothClass.dart';
@@ -16,7 +15,6 @@ class LocalTraining extends StatefulWidget {
 }
 
 class _LocalTrainingState extends State<LocalTraining> {
-  LineChartOptions _lineChartOptions;
   ChartOptions _verticalBarChartOptions;
   LabelLayoutStrategy _xContainerLabelLayoutStrategy;
   ChartData _chartData;
@@ -24,14 +22,14 @@ class _LocalTrainingState extends State<LocalTraining> {
   // Initializing a global key, as it would help us in showing a SnackBar later
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   String _messageBuffer = '';
-  List<Message> messages = List<Message>();
+  List<PhysioMessage> messages = List<PhysioMessage>();
   String chanelOne = "";
 
   double valChannelOne = 1;
   double valChannelTwo = 0;
 
   void defineOptionsAndData() {
-    _lineChartOptions = new LineChartOptions();
+    LineChartOptions _lineChartOptions = new LineChartOptions();
     _verticalBarChartOptions = new VerticalBarChartOptions();
     _xContainerLabelLayoutStrategy = new DefaultIterativeLabelLayoutStrategy(
       options: _verticalBarChartOptions,
@@ -100,7 +98,7 @@ class _LocalTrainingState extends State<LocalTraining> {
         this.valChannelTwo = jsonData[2];
 
         messages.add(
-          Message(
+          PhysioMessage(
             1,
             chanelOne,
           ),
@@ -160,7 +158,7 @@ class _LocalTrainingState extends State<LocalTraining> {
       }
     } else {
       print('Request connection');
-      var value = widget.btObj.connectToPhysioBot().then((value) {
+      widget.btObj.connectToPhysioBot().then((value) {
         receiveData();
       });
     }
